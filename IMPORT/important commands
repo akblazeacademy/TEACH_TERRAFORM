@@ -1,0 +1,2 @@
+terraform state list
+az resource list   --resource-group import-lab-rg   --query "[].{Name:name, Type:type, ID:id}"   -o table
