@@ -1,0 +1,19 @@
+# add in rg block
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+
+#add in vm block
+lifecycle {
+  create_before_destroy = true
+}
+
+
+#add in vm block 
+lifecycle {
+  ignore_changes = [
+    size
+  ]
+}
