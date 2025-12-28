@@ -87,3 +87,8 @@ resource "azurerm_subnet" "subnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.subnet_prefixes
 }
+###put in variables.tf
+variable "vnet_address_space" {
+  type = list(string)
+}
+
