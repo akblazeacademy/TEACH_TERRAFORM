@@ -1,1 +1,92 @@
 
+TERRAFORM AZURE VM IMPORT PRACTICAL
+==================================
+
+PREREQUISITES
+-------------
+- Azure CLI installed
+- Terraform installed
+- Azure VM already exists
+- Terraform configuration files (main.tf, variables.tf, terraform.tfvars) prepared
+- Provider azurerm configured
+
+----------------------------------
+
+1️⃣ Login to Azure
+
+   az login
+
+----------------------------------
+
+2️⃣ Initialize Terraform
+
+   terraform init
+
+----------------------------------
+
+3️⃣ Import Resource Group
+
+   terraform import azurerm_resource_group.rg \
+   /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME>
+
+----------------------------------
+
+4️⃣ Import Linux Virtual Machine
+
+   terraform import azurerm_linux_virtual_machine.vm \
+   /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME>/providers/Microsoft.Compute/virtualMachines/<VM_NAME>
+
+----------------------------------
+
+5️⃣ Refresh Terraform State
+
+   terraform refresh
+
+----------------------------------
+
+6️⃣ Verify Terraform State
+
+   terraform state list
+
+----------------------------------
+
+7️⃣ Verify Plan
+
+   terraform plan
+
+----------------------------------
+
+EXPECTED RESULT
+---------------
+No infrastructure changes required.
+
+Plan: 0 to add, 0 to change, 0 to destroy
+
+----------------------------------
+
+IMPORTANT NOTES
+---------------
+- Terraform does NOT automatically import dependent resources (NIC, Disk, VNet).
+- Only resources present in Terraform state are managed.
+- Resources referenced by ID but not imported are NOT controlled by Terraform.
+- To fully manage NIC or disks, they must be defined AND imported separately.
+
+----------------------------------
+
+COMMON MISTAKES
+---------------
+- Importing before defining resource blocks
+- Incorrect resource IDs
+- Missing disk or NIC definitions
+- Importing VM before Resource Group
+- Running terraform apply before import
+
+----------------------------------
+
+KEY CONCEPT
+-----------
+Terraform manages ONLY what exists in its state file.
+Azure resources outside the state are invisible to Terraform.
+
+==================================
+END OF PRACTICAL
