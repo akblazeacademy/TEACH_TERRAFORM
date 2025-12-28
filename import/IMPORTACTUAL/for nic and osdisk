@@ -41,4 +41,10 @@ variable "nic_name" {
 variable "subnet_id" {
   type = string
 }
+####add this in the vm block 
+depends_on = [
+  azurerm_network_interface.nic,
+  azurerm_managed_disk.osdisk
+]
+
 
