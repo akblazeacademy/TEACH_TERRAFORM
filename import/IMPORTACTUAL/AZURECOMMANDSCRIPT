@@ -66,6 +66,10 @@ terraform import azurerm_managed_disk.osdisk \
 terraform import azurerm_linux_virtual_machine.vm \
 /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.Compute/virtualMachines/<VM_NAME>
 
+6)IMPORT AZURE RG
+terraform import azurerm_resource_group.rg \
+   /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME>
+
 
 POST-IMPORT VERIFICATION
 -----------------------
