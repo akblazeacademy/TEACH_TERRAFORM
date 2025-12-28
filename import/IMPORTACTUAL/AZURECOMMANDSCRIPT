@@ -1,92 +1,105 @@
-
-TERRAFORM AZURE VM IMPORT PRACTICAL
-==================================
+TERRAFORM AZURE VM IMPORT – COMPLETE PRACTICAL
+=============================================
 
 PREREQUISITES
 -------------
-- Azure CLI installed
-- Terraform installed
-- Azure VM already exists
-- Terraform configuration files (main.tf, variables.tf, terraform.tfvars) prepared
-- Provider azurerm configured
+1. Azure resources already exist:
+   - Resource Group
+   - Virtual Network
+   - Subnet
+   - Network Interface
+   - OS Disk
+   - Linux Virtual Machine
 
-----------------------------------
+2. Terraform configuration files already created:
+   - main.tf
+   - variables.tf
+   - terraform.tfvars
 
-1️⃣ Login to Azure
-
-   az login
-
-----------------------------------
-
-2️⃣ Initialize Terraform
-
+3. Terraform initialized:
    terraform init
 
-----------------------------------
 
-3️⃣ Import Resource Group
+IMPORTANT RULE
+--------------
+Terraform IMPORT does NOT create resources.
+It only maps EXISTING Azure resources into Terraform state.
 
-   terraform import azurerm_resource_group.rg \
-   /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME>
 
-----------------------------------
+IMPORT ORDER (VERY IMPORTANT)
+-----------------------------
+Always import dependencies FIRST.
 
-4️⃣ Import Linux Virtual Machine
+Correct order:
+VNet → Subnet → NIC → Disk → VM
 
-   terraform import azurerm_linux_virtual_machine.vm \
-   /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME>/providers/Microsoft.Compute/virtualMachines/<VM_NAME>
 
-----------------------------------
+GENERALIZED IMPORT COMMANDS
+--------------------------
 
-5️⃣ Refresh Terraform State
+1) Import Virtual Network (VNet)
 
-   terraform refresh
+terraform import azurerm_virtual_network.vnet \
+/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.Network/virtualNetworks/<VNET_NAME>
 
-----------------------------------
 
-6️⃣ Verify Terraform State
+2) Import Subnet
 
-   terraform state list
+terraform import azurerm_subnet.subnet \
+/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.Network/virtualNetworks/<VNET_NAME>/subnets/<SUBNET_NAME>
 
-----------------------------------
 
-7️⃣ Verify Plan
+3) Import Network Interface (NIC)
 
-   terraform plan
+terraform import azurerm_network_interface.nic \
+/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.Network/networkInterfaces/<NIC_NAME>
 
-----------------------------------
 
-EXPECTED RESULT
----------------
-No infrastructure changes required.
+4) Import OS Disk (Managed Disk)
 
+terraform import azurerm_managed_disk.osdisk \
+/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.Compute/disks/<OS_DISK_NAME>
+
+
+5) Import Linux Virtual Machine (VM)
+
+terraform import azurerm_linux_virtual_machine.vm \
+/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.Compute/virtualMachines/<VM_NAME>
+
+
+POST-IMPORT VERIFICATION
+-----------------------
+Run the following commands:
+
+terraform refresh
+terraform plan
+
+EXPECTED OUTPUT:
 Plan: 0 to add, 0 to change, 0 to destroy
 
-----------------------------------
 
-IMPORTANT NOTES
----------------
-- Terraform does NOT automatically import dependent resources (NIC, Disk, VNet).
-- Only resources present in Terraform state are managed.
-- Resources referenced by ID but not imported are NOT controlled by Terraform.
-- To fully manage NIC or disks, they must be defined AND imported separately.
+COMMON ERRORS & MEANING
+----------------------
 
-----------------------------------
+Error: NicInUse
+Meaning: Terraform tried to delete NIC before VM.
+Fix: Ensure VM references NIC and depends_on is set.
 
-COMMON MISTAKES
----------------
-- Importing before defining resource blocks
-- Incorrect resource IDs
-- Missing disk or NIC definitions
-- Importing VM before Resource Group
-- Running terraform apply before import
+Error: Disk is attached to VM
+Meaning: Terraform tried to delete disk before VM.
+Fix: Ensure VM references managed disk and depends_on is set.
 
-----------------------------------
 
-KEY CONCEPT
------------
-Terraform manages ONLY what exists in its state file.
-Azure resources outside the state are invisible to Terraform.
+GOLDEN RULE (EXAM + INTERVIEW)
+------------------------------
+"If Terraform didn’t create or import it, Terraform doesn’t own it."
 
-==================================
+
+DEPENDENCY CHAIN (MEMORIZE)
+---------------------------
+VNet → Subnet → NIC → VM
+              ↘ Disk ↗
+
+
 END OF PRACTICAL
+================
