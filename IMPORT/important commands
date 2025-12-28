@@ -1,6 +1,0 @@
-terraform state list
-az resource list   --resource-group import-lab-rg   --query "[].{Name:name, Type:type, ID:id}"   -o table
-terraform state show azurerm_linux_virtual_machine.vm | grep size
-az vm resize --resource-group import-lab-rg --name import-vm --size Standard_B2s
-az vm show --resource-group import-lab-rg --name import-vm --query hardwareProfile.vmSize
-terraform refresh
