@@ -1,0 +1,14 @@
+terraform init `
+  -backend-config="resource_group_name=myprimary" `
+  -backend-config="storage_account_name=ungabunga" `
+  -backend-config="container_name=dev" `
+  -backend-config="key=terraform.tfstate"
+terraform init -reconfigure \
+  -backend-config="resource_group_name=tfstate-rg" \
+  -backend-config="storage_account_name=ungabunaga" \
+  -backend-config="container_name=prod" \
+  -backend-config="key=terraform.tfstate"
+terraform init -migrate-state -backend-config="container_name=prod"
+terraform plan -var-file="dev.tfvars"
+terraform plan -var-file="qa.tfvars"
+terraform plan -var-file="prod.tfvars"
