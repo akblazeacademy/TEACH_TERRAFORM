@@ -1,0 +1,159 @@
+TERRAFORM IMPORT PRACTICAL
+=========================
+Scenario:
+---------
+Terraform configuration files (.tf) exist,
+BUT the terraform.tfstate file is DELETED or LOST.
+
+Goal:
+-----
+Rebuild the Terraform state by importing
+ALL existing Azure resources back into state.
+
+Resources in scope:
+-------------------
+✔ Resource Group
+✔ Virtual Network
+✔ Subnet
+✔ Network Interface
+✔ Linux Virtual Machine
+
+
+--------------------------------------------------
+STEP 1: Login to Azure
+--------------------------------------------------
+
+az login
+
+
+--------------------------------------------------
+STEP 2: Set Subscription (if multiple exist)
+--------------------------------------------------
+
+az account set --subscription <SUBSCRIPTION_ID>
+
+
+--------------------------------------------------
+STEP 3: Fetch Resource IDs from Azure
+(These commands DO NOT change anything)
+--------------------------------------------------
+
+### 3.1 Resource Group ID
+az group show \
+  --name rg-lifecycle-demo \
+  --query id \
+  -o tsv
+
+
+### 3.2 Virtual Network ID
+az network vnet show \
+  --resource-group rg-lifecycle-demo \
+  --name vnet-demo \
+  --query id \
+  -o tsv
+
+
+### 3.3 Subnet ID
+az network vnet subnet show \
+  --resource-group rg-lifecycle-demo \
+  --vnet-name vnet-demo \
+  --name default \
+  --query id \
+  -o tsv
+
+
+### 3.4 Network Interface ID
+az network nic show \
+  --resource-group rg-lifecycle-demo \
+  --name nic-demo \
+  --query id \
+  -o tsv
+
+
+### 3.5 Virtual Machine ID
+az vm show \
+  --resource-group rg-lifecycle-demo \
+  --name vm-demo \
+  --query id \
+  -o tsv
+
+
+--------------------------------------------------
+STEP 4: Initialize Terraform
+(Backend + Providers)
+--------------------------------------------------
+
+terraform init
+
+
+--------------------------------------------------
+STEP 5: Import Resources into Terraform State
+(ORDER MATTERS)
+--------------------------------------------------
+
+### 5.1 Import Resource Group
+terraform import azurerm_resource_group.rg \
+/subscriptions/<SUB_ID>/resourceGroups/rg-lifecycle-demo
+
+
+### 5.2 Import Virtual Network
+terraform import azurerm_virtual_network.vnet \
+/subscriptions/<SUB_ID>/resourceGroups/rg-lifecycle-demo/providers/Microsoft.Network/virtualNetworks/vnet-demo
+
+
+### 5.3 Import Subnet
+terraform import azurerm_subnet.subnet \
+/subscriptions/<SUB_ID>/resourceGroups/rg-lifecycle-demo/providers/Microsoft.Network/virtualNetworks/vnet-demo/subnets/default
+
+
+### 5.4 Import Network Interface
+terraform import azurerm_network_interface.nic \
+/subscriptions/<SUB_ID>/resourceGroups/rg-lifecycle-demo/providers/Microsoft.Network/networkInterfaces/nic-demo
+
+
+### 5.5 Import Virtual Machine
+terraform import azurerm_linux_virtual_machine.vm \
+/subscriptions/<SUB_ID>/resourceGroups/rg-lifecycle-demo/providers/Microsoft.Compute/virtualMachines/vm-demo
+
+
+--------------------------------------------------
+STEP 6: Verify State
+--------------------------------------------------
+
+terraform state list
+
+
+EXPECTED OUTPUT:
+----------------
+azurerm_resource_group.rg
+azurerm_virtual_network.vnet
+azurerm_subnet.subnet
+azurerm_network_interface.nic
+azurerm_linux_virtual_machine.vm
+
+
+--------------------------------------------------
+STEP 7: Validate with Plan
+--------------------------------------------------
+
+terraform plan
+
+
+EXPECTED RESULT:
+----------------
+Plan: 0 to add, 0 to change, 0 to destroy
+
+
+--------------------------------------------------
+IMPORTANT NOTES (EXAM + INTERVIEW)
+--------------------------------------------------
+
+✔ Import rebuilds STATE only
+✔ Import does NOT create resources
+✔ Terraform config MUST already exist
+✔ Order matters when importing dependencies
+✔ If config ≠ real Azure → terraform plan will show drift
+
+--------------------------------------------------
+END OF PRACTICAL
+--------------------------------------------------
