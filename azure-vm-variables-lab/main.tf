@@ -12,8 +12,7 @@ provider "azurerm" {
 # - location (string)
 ############################################
 resource "azurerm_resource_group" "rg" {
-  # Object variable access:
-  # var.vm_config.name → VM name from object
+  # Object variable access
   name     = "${var.vm_config.name}-rg"
 
   # String variable
@@ -28,8 +27,6 @@ resource "azurerm_resource_group" "rg" {
 resource "azurerm_virtual_network" "vnet" {
   name                = "vm-vnet"
   address_space       = ["10.0.0.0/16"]
-
-  # String variable
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 }
@@ -41,8 +38,6 @@ resource "azurerm_subnet" "subnet" {
   name                 = "vm-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-
-  # Fixed CIDR block
   address_prefixes     = ["10.0.1.0/24"]
 }
 
@@ -52,8 +47,6 @@ resource "azurerm_subnet" "subnet" {
 # - enable_public_ip (bool)
 ############################################
 resource "azurerm_public_ip" "pip" {
-  # Boolean variable decides
-  # whether Public IP is created or not
   count = var.enable_public_ip ? 1 : 0
 
   name                = "vm-pip"
@@ -65,32 +58,25 @@ resource "azurerm_public_ip" "pip" {
 ############################################
 # NETWORK SECURITY GROUP
 # Uses:
-# - allowed_ports (set of numbers)
+# - allowed_ports (set)
 ############################################
 resource "azurerm_network_security_group" "nsg" {
   name                = "vm-nsg"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 
-  # Dynamic block creates one rule per port
-  # for_each iterates over SET variable
   dynamic "security_rule" {
     for_each = var.allowed_ports
 
     content {
-      # Each rule name uses the port number
-      name = "allow-${security_rule.value}"
-
-      # Priority must be unique → derived from port
-      priority = 100 + security_rule.value
-
-      direction = "Inbound"
-      access    = "Allow"
-      protocol  = "Tcp"
-
-      source_port_range      = "*"
-      destination_port_range = security_rule.value
-      source_address_prefix  = "*"
+      name                       = "allow-${security_rule.value}"
+      priority                   = 100 + security_rule.value
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = security_rule.value
+      source_address_prefix      = "*"
       destination_address_prefix = "*"
     }
   }
@@ -111,9 +97,7 @@ resource "azurerm_network_interface" "nic" {
     subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "Dynamic"
 
-    # Conditional Public IP attachment
-    # If enable_public_ip = true → attach PIP
-    # If false → null
+    # Conditional Public IP
     public_ip_address_id = var.enable_public_ip ? azurerm_public_ip.pip[0].id : null
   }
 }
@@ -125,15 +109,14 @@ resource "azurerm_network_interface" "nic" {
 resource "azurerm_linux_virtual_machine" "vm" {
 
   # Object variable
-  name                = var.vm_config.name
-  admin_username      = var.vm_config.admin
+  name           = var.vm_config.name
+  admin_username = var.vm_config.admin
 
   # String variable
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 
   # Map variable
-  # env (from object) → maps to correct VM size
   size = var.vm_sizes[var.vm_config.env]
 
   disable_password_authentication = true
@@ -143,8 +126,12 @@ resource "azurerm_linux_virtual_machine" "vm" {
     azurerm_network_interface.nic.id
   ]
 
-  # List variable (Availability Zones)
-  zones = var.zones
+  ##########################################
+  # AVAILABILITY ZONE
+  # Uses LIST variable
+  # Azure VM supports ONLY ONE zone
+  ##########################################
+  zone = var.zones[0]
 
   ##########################################
   # SSH CONFIGURATION
@@ -166,7 +153,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   ##########################################
   # OS IMAGE
-  # Uses tuple variable (fixed order)
+  # Uses tuple variable
   ##########################################
   source_image_reference {
     publisher = var.os_image[0]
